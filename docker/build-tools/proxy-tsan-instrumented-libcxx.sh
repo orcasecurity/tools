@@ -18,7 +18,10 @@ set -eux
 
 # gcc-9, need to build instrumented LLVM libc++ for tsan testing.
 add-apt-repository -y ppa:ubuntu-toolchain-r/test
-apt-get update && apt-get install -y --no-install-recommends g++-9 libncurses5
+apt-get update
+apt-get upgrade -y
+apt-get install -y --no-install-recommends g++-9 libncurses6
+
 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1000
 update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1000
 update-alternatives --config gcc
@@ -49,3 +52,4 @@ ninja install-cxx install-cxxabi
 
 rm -rf /opt/libcxx_tsan/include
 popd || exit
+
