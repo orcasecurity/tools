@@ -27,7 +27,7 @@
 ################
 # Binary tools
 ################
-ARG GOLANG_IMAGE=golang:1.22.6
+ARG GOLANG_IMAGE=golang:1.23.7
 # hadolint ignore=DL3006
 FROM ${GOLANG_IMAGE} as binary_tools_context_base
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -629,7 +629,7 @@ ENV CARGO_HOME=/home/.cargo
 ENV RUSTUP_HOME=/home/.rustup
 # hadolint ignore=DL4006
 RUN curl --proto '=https' -v --tlsv1.2 -sSf https://sh.rustup.rs | \
-    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt clippy &&\
+    sh -s -- -y -v --default-toolchain ${RUST_VERSION} --profile minimal --component rustfmt --component clippy &&\
     /home/.cargo/bin/rustup default ${RUST_VERSION} &&\
     mv /home/.cargo/bin/* /usr/bin
 
@@ -973,7 +973,7 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu ${UBUNTU_RELEASE_CODE_NAME} stable"
 # hadolint ignore=DL3009
-RUN apt-get update && apt-get -y install --no-install-recommends \
+RUN apt-get update && apt upgrade -y && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
