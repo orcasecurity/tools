@@ -1,6 +1,6 @@
 module istio.io/tools
 
-go 1.22.0
+go 1.23.7
 
 require (
 	github.com/client9/gospell v0.0.0-20160306015952-90dfc71015df

@@ -99,6 +99,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean \
     && apt-get update \
+    && apt-get upgrade -y \
     && apt-get -y --no-install-recommends install \
     apt-transport-https \
     build-essential \
@@ -529,7 +530,7 @@ ENV REQUESTS_VERSION=2.31.0
 ENV YAMLLINT_VERSION=1.32.0
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     libc-dev \
@@ -572,7 +573,7 @@ ENV OUTDIR=/out
 RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean \
-    && apt-get update && apt-get install -y --no-install-recommends \
+    && apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -756,15 +757,15 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 # Clang+LLVM
 ##############
 
-FROM ubuntu:bionic AS clang_context_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
+FROM ubuntu:noble AS clang_context_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=noble
 FROM ubuntu:focal AS clang_context_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
 # hadolint ignore=DL3006
 FROM clang_context_${TARGETARCH} AS clang_context
 
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     xz-utils \
     wget \
     ca-certificates \
@@ -772,7 +773,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ninja-build \
     gpg-agent \
-    libtinfo5
+    libtinfo6
 
 ENV LLVM_VERSION=14.0.0
 ENV LLVM_BASE_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}
@@ -821,7 +822,7 @@ RUN ./proxy-tsan-instrumented-libcxx.sh
 # GN
 ###########
 
-FROM ubuntu:bionic AS gn_context_amd64
+FROM ubuntu:noble AS gn_context_amd64
 FROM ubuntu:focal AS gn_context_arm64
 # hadolint ignore=DL3006
 FROM gn_context_${TARGETARCH} AS gn_context
@@ -830,9 +831,10 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean \
     && apt-get update \
+    && apt-get upgrade -y \
     && apt-get -y --no-install-recommends install \
     ca-certificates git \
-    clang python ninja-build \
+    clang python-is-python3 ninja-build \
     libclang-dev libc++-dev
 
 WORKDIR /tmp
@@ -853,7 +855,7 @@ RUN set -eux; \
 # Bazel
 ###########
 
-FROM ubuntu:bionic AS bazel_context_amd64
+FROM ubuntu:noble AS bazel_context_amd64
 FROM ubuntu:focal AS bazel_context_arm64
 # hadolint ignore=DL3006
 FROM bazel_context_${TARGETARCH} AS bazel_context
@@ -882,16 +884,16 @@ RUN mv ${BAZELISK_BIN} /usr/local/bin/bazel
 # Final image for proxy
 ########################
 
-FROM ubuntu:bionic AS build_env_proxy_amd64
-ENV UBUNTU_RELEASE_CODE_NAME=bionic
-ENV UBUNTU_RELEASE_VERSION=18.04
+FROM ubuntu:noble AS build_env_proxy_amd64
+ENV UBUNTU_RELEASE_CODE_NAME=noble
+ENV UBUNTU_RELEASE_VERSION=24.04
 FROM ubuntu:focal AS build_env_proxy_arm64
 ENV UBUNTU_RELEASE_CODE_NAME=focal
 ENV UBUNTU_RELEASE_VERSION=20.04
 # hadolint ignore=DL3006
 FROM build_env_proxy_${TARGETARCH} AS build_env_proxy
 
-ENV DOCKER_BUILDX_VERSION=0.10.5-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV DOCKER_BUILDX_VERSION=0.21.1-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
 ENV SU_EXEC_VERSION=0.3.1
 
 WORKDIR /
@@ -904,8 +906,8 @@ LABEL "io.istio.repo"="https://github.com/istio/tools"
 LABEL "io.istio.version"="${VERSION}"
 
 # Docker
-ENV DOCKER_VERSION=5:24.0.2-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
-ENV CONTAINERD_VERSION=1.6.21-1
+ENV DOCKER_VERSION=5:28.0.1-1~ubuntu.${UBUNTU_RELEASE_VERSION}~${UBUNTU_RELEASE_CODE_NAME}
+ENV CONTAINERD_VERSION=1.7.25-1
 
 # General
 ENV HOME=/home
@@ -938,6 +940,7 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean \
     && apt-get update \
+    && apt-get upgrade -y \
     && apt-get -y --no-install-recommends install \
     apt-transport-https \
     ca-certificates \
@@ -964,10 +967,10 @@ RUN --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     cmake \
     libtool \
     ninja-build \
-    python \
+    python-is-python3 \
     unzip \
-    libncurses5 \
-    libtinfo5 \
+    libncurses6 \
+    libtinfo6 \
     virtualenv
 
 # Docker including docker-ce, docker-ce-cli, and containerd.io
@@ -976,7 +979,7 @@ RUN apt-key add /tmp/docker-key
 ARG TARGETARCH
 RUN add-apt-repository "deb [arch=${TARGETARCH}] https://download.docker.com/linux/ubuntu ${UBUNTU_RELEASE_CODE_NAME} stable"
 # hadolint ignore=DL3009
-RUN apt-get update && apt-get -y install --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get -y install --no-install-recommends \
     docker-ce="${DOCKER_VERSION}" \
     docker-ce-cli="${DOCKER_VERSION}" \
     containerd.io="${CONTAINERD_VERSION}" \
@@ -1073,3 +1076,4 @@ RUN rm -rf /var/lib/apt/lists/* && \
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+
