@@ -1035,6 +1035,7 @@ COPY --link --from=clang_context ${LLVM_DIRECTORY}/bin ${LLVM_DIRECTORY}/bin
 COPY --link --from=clang_context ${LLVM_DIRECTORY}/include ${LLVM_DIRECTORY}/include
 COPY --link --from=clang_context /opt/libcxx_tsan /opt/libcxx_tsan
 
+# RUN cp -r /opt/libcxx_tsan/lib /usr/local/
 RUN cp -r /usr/lib/llvm/lib/x86_64-unknown-linux-gnu/* /usr/local/lib/
 
 COPY install-python.sh install-python.sh
